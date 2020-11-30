@@ -65,11 +65,42 @@ public:
 
 private:
     uint64_t size_;
+    bit_vector table_;
+    uint64_t lengths_[4];
+    uint64_t seeds_[4];
 
     /**
-     * \class rank_support
-     * \brief Class / structure that “wraps” the underlying bit-vector.
-     */
+    * \brief fills one array/layer of the hash table
+    *
+    * \returns vector of all colliding elements
+    *
+    * \note
+    */
+    std::vector<std::string> build_array(std::vector<std::string> keys, uint64_t n, uint64_t seed);
+
+    /**
+    * \brief lookup function for the hash table
+    *
+    * \param key a string to look up
+    *
+    * \returns a bool indicating whether key is present in the table
+    *
+    * \note
+    */
+    bool lookup(std::string key);
+
+    /**
+    * \brief recursive helper function for lookup function
+    *
+    * \param key a string to look up
+    *
+    * \param ind the index at which to start the search
+    *
+    * \returns a bool indicating whether key is present in the table
+    *
+    * \note
+    */
+    bool lookup_helper(std::string key, uint64_t ind);
 };
 
 /**
