@@ -15,6 +15,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
+#include <sdsl/bit_vectors.hpp>
 
 using namespace sdsl;
 
@@ -66,8 +68,9 @@ public:
 private:
     uint64_t size_;
     bit_vector table_;
-    uint64_t lengths_[4];
-    uint64_t seeds_[4];
+    std::unordered_set<std::string> remaining_;
+    uint64_t lengths_[3];
+    uint64_t seeds_[3];
 
     /**
     * \brief fills one array/layer of the hash table
