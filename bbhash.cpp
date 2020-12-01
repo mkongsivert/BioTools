@@ -18,19 +18,18 @@ using namespace sdsl;
 
 bbhash::bbhash()
 {
-    lengths_ = {0,0,0};
+
 }
 
 bbhash::bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma)
 {
-    lengths_ = {0,0,0} // initialize all lengths to 0 by default
     std::vector<std::string> keys_to_hash = keys;
     size_ = n;
     uint64_t len = gamma*n;
     bit_vector all_tables[3];
     for (uint64_t i = 0; i < 3; ++i)
     {
-        table = bit_vector(len, 0);
+        bit_vector table = bit_vector(len, 0);
         lengths_[i] = len;
         uint64_t seed = std::rand(); // doesn't really need to be random
         seeds_[i] = seed;
@@ -46,7 +45,7 @@ bbhash::bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma)
     // build regular hash table for remaining elements
     for (auto itr = keys_to_hash.begin(); itr != keys_to_hash.end(); ++itr)
     {
-        remaining_.insert(*itr)
+        remaining_.insert(*itr);
     }
 
     // "concatenate" all the bitvectors together
@@ -56,7 +55,7 @@ bbhash::bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma)
     uint64_t pre = 0;
     for (uint64_t i = 0; i < 3; ++i)
     {
-        for (uint64_t j = 0; j < all_tables[i].size())
+        for (uint64_t j = 0; j < all_tables[i].size(); ++j)
         {
             table_[pre+j] = all_tables[i][j];
         }
@@ -67,29 +66,29 @@ bbhash::bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma)
 std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::string> keys, uint64_t len, uint64_t seed)
 {
     //build table of collisions
-    bool coll[len] = {false};
-    for (auto itr1 = keys.begin(); itr1 != keys.end(); ++itr1)
+    bit_vector coll = bit_vector(len, 0);
+    for (auto itr = keys.begin(); itr != keys.end(); ++itr)
     {
-        XXH64_hash_t hash = XXH64(*itr, sizeof(*itr), seed)%len;
+        XXH64_hash_t hash = XXH64(itr->c_str(), itr->length(), seed)%len;
         if (table[hash])
         {
-            coll[hash] = true;
+            coll[hash] = 1;
         }
         else
         {
-            table[hash] = true;
+            table[hash] = 0;
         }
     }
 
     //build hash table and collision list
     std::vector<std::string> collisions;
-    for (auto itr = keys.begin(); itr != keys.end; ++itr)
+    for (auto itr = keys.begin(); itr != keys.end(); ++itr)
     {
         XXH64_hash_t hash = XXH64(itr->c_str(), itr->length(), seed)%len;
-        if (coll[hash])
+        if (coll[hash] == 1)
         {
-            table[hash] = false;
-            collisions.append(*itr)
+            table[hash] = 0;
+            collisions.push_back(*itr);
         }
         
     }
@@ -103,10 +102,10 @@ bool bbhash::lookup(std::string key)
 
 bool bbhash::lookup_helper(std::string key, uint64_t ind, uint64_t pre)
 {
-    XXH64_hash_t hash = XXH64(key, sizeof(key), seeds_[ind])%lengths_[ind];
+    XXH64_hash_t hash = XXH64(key.c_str(), key.length(), seeds_[ind])%lengths_[ind];
     if (ind < 3)
     {
-        if (table_[key+pre])
+        if (table_[hash+pre])
         {
             return true;
         }
@@ -117,7 +116,7 @@ bool bbhash::lookup_helper(std::string key, uint64_t ind, uint64_t pre)
     }
     else
     {
-        return collisions_.count(key)>0;
+        return remaining_.count(key)>0;
     }
 }
 
@@ -147,6 +146,6 @@ int main()
     std::vector<std::string> keys0;
     keys0.push_back("lovecats");
     keys0.push_back("lovesong");
-    test0 = bbhash(keys0, 2, 1);
+    bbhash test0 = bbhash(keys0, 2, 1);
     return 0;
 }

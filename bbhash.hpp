@@ -69,7 +69,7 @@ private:
     uint64_t size_;
     bit_vector table_;
     std::unordered_set<std::string> remaining_;
-    uint64_t lengths_[3];
+    uint64_t lengths_[3] = {0,0,0}; // initialize all lengths to 0 by default
     uint64_t seeds_[3];
 
     /**
@@ -79,7 +79,7 @@ private:
     *
     * \note
     */
-    std::vector<std::string> build_array(std::vector<std::string> keys, uint64_t n, uint64_t seed);
+    std::vector<std::string> build_array(bit_vector table, std::vector<std::string> keys, uint64_t n, uint64_t seed);
 
     /**
     * \brief lookup function for the hash table
@@ -103,7 +103,7 @@ private:
     *
     * \note
     */
-    bool lookup_helper(std::string key, uint64_t ind);
+    bool lookup_helper(std::string key, uint64_t ind, uint64_t pre);
 };
 
 /**
