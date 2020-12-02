@@ -70,6 +70,7 @@ std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::
     for (auto itr = keys.begin(); itr != keys.end(); ++itr)
     {
         XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(itr->c_str())), itr->length(), seed)%len;
+        std::cout << *itr << " hashes to " << hash << std::endl;
         if (table[hash])
         {
             coll[hash] = 1;
@@ -90,7 +91,7 @@ std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::
             table[hash] = 0;
             collisions.push_back(*itr);
         }
-        
+        std::cout << coll[hash] << std::endl;
     }
     return collisions;
 }
@@ -110,6 +111,7 @@ bool bbhash::lookup_helper(std::string key, uint64_t ind, uint64_t pre)
         }
 
         XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(key.c_str())), key.length(), seeds_[ind])%lengths_[ind];
+        std::cout << "want to find hash " << hash << std::endl;
         if (table_[hash+pre] == 1)
         {
             return true;
@@ -151,6 +153,12 @@ int main()
     std::vector<std::string> keys0;
     keys0.push_back("lovecats");
     keys0.push_back("lovesong");
+    keys0.push_back("just like heaven");
+    keys0.push_back("seventeen seconds");
+    keys0.push_back("play for today");
+    keys0.push_back("fascination street");
+    keys0.push_back("friday i'm in love");
+    keys0.push_back("boys don't cry");
     bbhash test0 = bbhash(keys0, 2, 1);
     bool what = test0.lookup("lovecats");
     std::cout << "should be 1: " << what << std::endl;
