@@ -3,7 +3,8 @@ Implementation of the BBHash algorithm for CMSC858D
 
 I timed this implementation with various values of gamma (1, 1.25, 1.5, 1.75, and 2) and numbers of keys ranging from 100 to 1 |000 |000. In particular , I tested by loading in n words from this list of English words: <https://github.com/dwyl/english-words/blob/master/words.txt>. This algorithm worked surprisingly fast given the sizes of the inputs, and running tests was pretty fast. After running these trials, I got the following data:
 
-Size | 1 | 1.25 | 1.5 | 1.75 | 2 |
+| Size | 1 | 1.25 | 1.5 | 1.75 | 2 |
+| --- | --- | --- | --- | --- | --- |
 | 100 | 451 | 294 | 446 | 226 | 231 |
 | 200 | 786 | 590 | 657 | 200 | 196 |
 | 1,000 | 1821 | 1132 | 2044 | 942 | 885 |
