@@ -69,7 +69,7 @@ std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::
     bit_vector coll = bit_vector(len, 0);
     for (auto itr = keys.begin(); itr != keys.end(); ++itr)
     {
-        XXH64_hash_t hash = XXH64(itr->c_str(), itr->length(), seed)%len;
+        XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(itr->c_str())), itr->length(), seed)%len;
         if (table[hash])
         {
             coll[hash] = 1;
@@ -84,7 +84,7 @@ std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::
     std::vector<std::string> collisions;
     for (auto itr = keys.begin(); itr != keys.end(); ++itr)
     {
-        XXH64_hash_t hash = XXH64(itr->c_str(), itr->length(), seed)%len;
+        XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(itr->c_str())), itr->length(), seed)%len;
         if (coll[hash] == 1)
         {
             table[hash] = 0;
@@ -102,16 +102,21 @@ bool bbhash::lookup(std::string key)
 
 bool bbhash::lookup_helper(std::string key, uint64_t ind, uint64_t pre)
 {
-    XXH64_hash_t hash = XXH64(key.c_str(), key.length(), seeds_[ind])%lengths_[ind];
     if (ind < 3)
     {
-        if (table_[hash+pre])
+        if (!lengths_[ind]) // mod by 0 is undefined
+        {
+            return false;
+        }
+
+        XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(key.c_str())), key.length(), seeds_[ind])%lengths_[ind];
+        if (table_[hash+pre] == 1)
         {
             return true;
         }
         else
         {
-            lookup_helper(key, ind+1, pre+lengths_[ind]);
+            return lookup_helper(key, ind+1, pre+lengths_[ind]);
         }
     }
     else
@@ -147,5 +152,7 @@ int main()
     keys0.push_back("lovecats");
     keys0.push_back("lovesong");
     bbhash test0 = bbhash(keys0, 2, 1);
+    bool what = test0.lookup("lovecats");
+    std::cout << "should be 1: " << what << std::endl;
     return 0;
 }

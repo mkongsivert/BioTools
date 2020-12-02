@@ -65,6 +65,17 @@ public:
     */
     uint64_t size();
 
+    /**
+    * \brief lookup function for the hash table
+    *
+    * \param key a string to look up
+    *
+    * \returns a bool indicating whether key is present in the table
+    *
+    * \note
+    */
+    bool lookup(std::string key);
+
 private:
     uint64_t size_;
     bit_vector table_;
@@ -80,17 +91,6 @@ private:
     * \note
     */
     std::vector<std::string> build_array(bit_vector table, std::vector<std::string> keys, uint64_t n, uint64_t seed);
-
-    /**
-    * \brief lookup function for the hash table
-    *
-    * \param key a string to look up
-    *
-    * \returns a bool indicating whether key is present in the table
-    *
-    * \note
-    */
-    bool lookup(std::string key);
 
     /**
     * \brief recursive helper function for lookup function
