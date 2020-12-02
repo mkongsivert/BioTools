@@ -13,6 +13,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <chrono>
 
 using namespace sdsl;
 
@@ -21,20 +22,18 @@ bbhash::bbhash()
 
 }
 
-bbhash::bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma)
+bbhash::bbhash(std::vector<std::string> keys, uint64_t n, double gamma)
 {
     std::vector<std::string> keys_to_hash = keys;
     size_ = n;
     uint64_t len = gamma*n;
-    bit_vector all_tables[3];
     for (uint64_t i = 0; i < 3; ++i)
     {
-        bit_vector table = bit_vector(len, 0);
+        tables_[i] = bit_vector(len, 0);
         lengths_[i] = len;
         uint64_t seed = std::rand(); // doesn't really need to be random
         seeds_[i] = seed;
-        keys_to_hash = build_array(table, keys_to_hash, len, seed);
-        all_tables[i] = table;
+        keys_to_hash = build_array(tables_[i], keys_to_hash, len, seed);
         if (keys_to_hash.empty())
         {
             break;
@@ -48,36 +47,22 @@ bbhash::bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma)
         remaining_.insert(*itr);
     }
 
-    // "concatenate" all the bitvectors together
-    // There should be a more efficient way to do this, but I couldn't find
-    // any sort of concat feature for bit_vector types
-    table_ = bit_vector(size_*gamma, 0);
-    uint64_t pre = 0;
-    for (uint64_t i = 0; i < 3; ++i)
-    {
-        for (uint64_t j = 0; j < all_tables[i].size(); ++j)
-        {
-            table_[pre+j] = all_tables[i][j];
-        }
-        pre += all_tables[i].size();
-    }
 }
 
-std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::string> keys, uint64_t len, uint64_t seed)
+std::vector<std::string> bbhash::build_array(bit_vector& table, std::vector<std::string> keys, uint64_t len, uint64_t seed)
 {
     //build table of collisions
     bit_vector coll = bit_vector(len, 0);
     for (auto itr = keys.begin(); itr != keys.end(); ++itr)
     {
         XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(itr->c_str())), itr->length(), seed)%len;
-        std::cout << *itr << " hashes to " << hash << std::endl;
         if (table[hash])
         {
             coll[hash] = 1;
         }
         else
         {
-            table[hash] = 0;
+            table[hash] = 1;
         }
     }
 
@@ -91,17 +76,16 @@ std::vector<std::string> bbhash::build_array(bit_vector table, std::vector<std::
             table[hash] = 0;
             collisions.push_back(*itr);
         }
-        std::cout << coll[hash] << std::endl;
     }
     return collisions;
 }
 
 bool bbhash::lookup(std::string key)
 {
-    return lookup_helper(key, 0, 0);
+    return lookup_helper(key, 0);
 }
 
-bool bbhash::lookup_helper(std::string key, uint64_t ind, uint64_t pre)
+bool bbhash::lookup_helper(std::string key, uint64_t ind)
 {
     if (ind < 3)
     {
@@ -111,14 +95,13 @@ bool bbhash::lookup_helper(std::string key, uint64_t ind, uint64_t pre)
         }
 
         XXH64_hash_t hash = XXH64(static_cast<void*>(const_cast<char*>(key.c_str())), key.length(), seeds_[ind])%lengths_[ind];
-        std::cout << "want to find hash " << hash << std::endl;
-        if (table_[hash+pre] == 1)
+        if (tables_[ind][hash] == 1)
         {
             return true;
         }
         else
         {
-            return lookup_helper(key, ind+1, pre+lengths_[ind]);
+            return lookup_helper(key, ind+1);
         }
     }
     else
@@ -132,11 +115,6 @@ void bbhash::save(std::string& fname)
 
 }
 
-void bbhash::load(std::string& fname)
-{
-
-}
-
 uint64_t bbhash::size()
 {
     return size_;
@@ -144,23 +122,53 @@ uint64_t bbhash::size()
 
 std::ostream& bbhash::print(std::ostream& out) const
 {
+    // TODO: finish writing this
     out << size_;
     return out;
 }
 
+bbhash load(std::string& fname, uint64_t n, double gamma)
+{
+    std::string line;
+    std::vector<std::string> keys;
+    std::ifstream myfile (fname);
+    if (myfile.is_open())
+    {
+        for (uint64_t i = 0; i < n; ++i)
+        {
+            getline(myfile,line);
+            keys.push_back(line);
+        }
+        myfile.close();
+        return bbhash(keys, n, gamma);
+    }
+
+    else
+    {
+        std::cout << "Unable to open file"; 
+        return bbhash();
+    }
+}
+
 int main()
 {
-    std::vector<std::string> keys0;
-    keys0.push_back("lovecats");
-    keys0.push_back("lovesong");
-    keys0.push_back("just like heaven");
-    keys0.push_back("seventeen seconds");
-    keys0.push_back("play for today");
-    keys0.push_back("fascination street");
-    keys0.push_back("friday i'm in love");
-    keys0.push_back("boys don't cry");
-    bbhash test0 = bbhash(keys0, 2, 1);
-    bool what = test0.lookup("lovecats");
-    std::cout << "should be 1: " << what << std::endl;
+    std::string fname = "words.txt";
+    auto t0 = std::chrono::high_resolution_clock::now();
+    bbhash test0 = load(fname, 1000000, 1);
+    auto t1 = std::chrono::high_resolution_clock::now();
+    bbhash test1 = load(fname, 1000000, 1.25);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    bbhash test2 = load(fname, 1000000, 1.5);
+    auto t3 = std::chrono::high_resolution_clock::now();
+    bbhash test3 = load(fname, 1000000, 1.75);
+    auto t4 = std::chrono::high_resolution_clock::now();
+    bbhash test4 = load(fname, 1000000, 2);
+    auto t5 = std::chrono::high_resolution_clock::now();
+    auto dur0 = std::chrono::duration_cast<std::chrono::microseconds>( t1 - t0 ).count();
+    auto dur1 = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+    auto dur2 = std::chrono::duration_cast<std::chrono::microseconds>( t3 - t2 ).count();
+    auto dur3 = std::chrono::duration_cast<std::chrono::microseconds>( t4 - t3 ).count();
+    auto dur4 = std::chrono::duration_cast<std::chrono::microseconds>( t5 - t4 ).count();
+    std::cout << "time to construct: " << dur0 << "; " << dur1 << "; " << dur2 << "; " << dur3 << "; " << dur4 << std::endl;
     return 0;
 }

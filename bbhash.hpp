@@ -42,7 +42,7 @@ public:
      *
      * \note
      */
-    bbhash(std::vector<std::string> keys, uint64_t n, uint64_t gamma);
+    bbhash(std::vector<std::string> keys, uint64_t n, double gamma);
 
     std::ostream& print(std::ostream& out) const; ///< Printing
 
@@ -52,12 +52,6 @@ public:
     * \note
     */
     void save(std::string& fname);
-    /**
-    * \brief loads data into the hash table
-    *
-    * \note
-    */
-    void load(std::string& fname);
     /**
     * \brief returns the size of the data structure
     *
@@ -78,7 +72,7 @@ public:
 
 private:
     uint64_t size_;
-    bit_vector table_;
+    bit_vector tables_[3];
     std::unordered_set<std::string> remaining_;
     uint64_t lengths_[3] = {0,0,0}; // initialize all lengths to 0 by default
     uint64_t seeds_[3];
@@ -90,7 +84,7 @@ private:
     *
     * \note
     */
-    std::vector<std::string> build_array(bit_vector table, std::vector<std::string> keys, uint64_t n, uint64_t seed);
+    std::vector<std::string> build_array(bit_vector& table, std::vector<std::string> keys, uint64_t n, uint64_t seed);
 
     /**
     * \brief recursive helper function for lookup function
@@ -103,8 +97,10 @@ private:
     *
     * \note
     */
-    bool lookup_helper(std::string key, uint64_t ind, uint64_t pre);
+    bool lookup_helper(std::string key, uint64_t ind);
 };
+
+bbhash load(std::string& fname, uint64_t n, double gamma);
 
 /**
  * \brief Print operator.
