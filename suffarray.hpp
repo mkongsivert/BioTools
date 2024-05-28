@@ -25,7 +25,6 @@
  * 
  * \details Why does C++ not have this built in in the first place?
 */
-template <class T>
 class Tree {
 
 struct Node;
@@ -39,20 +38,14 @@ public:
     Tree();
 
     /**
+     * \brief Parameterized constructor
+    */
+   Tree(std::string sequence);
+
+    /**
      * \brief this destroys and deallocates a tree
     */
    ~Tree();
-
-   /**
-     * \brief gives the size of the tree
-     *
-     * \returns the number of nodes in the tree
-     *
-     * \remarks the size of an empty tree is 0
-     *
-     *
-     */
-    size_t size() const;
     
     /**
      * \brief inserts an element into the treeset
@@ -65,27 +58,23 @@ public:
      *
      * \remarks runs in log(n) time and does not insert duplicates
      */
-    void insert(T elem);
+    void insert(char elem);
 
     /**
-     * \brief checks if an element is in the treeset
-     *
-     * \param elem is the element that we are searching for
-     *
-     * \returns true if the element is in the treeset and false otherwise
-     *
-     * \remarks runs in log(n) time
-     */
-    bool exists(T& elem);
-
-    /**
-     * \brief prints the tree in increasing order of value
+     * \brief prints the contents of the tree
      */
     std::ostream& print(std::ostream& out) const;
 
+    /**
+     * \brief converts the suffix tree into a corresponding array
+     * 
+     * \returns the corresponding suffix array as a list of strings
+    */
+    std::list<std::string> makesuffarray();
+
 private:
-    size_t size_; ///< size of tree
     Node* root_; ///< the root node of the tree
+    std::list<std::string::iterator> lastchar_; ///< the last char to be inserted into the tree (all locations)
 
     /**
      * \brief private recursive helper function for destructor
@@ -98,10 +87,10 @@ private:
     void printNodes(std::ostream& out, Node *const root) const;
 
     struct Node{
-        Node(T value);
-        Node* left; ///< the node's left child
-        Node* right; ///< the node's right child
-        T value; ///< the value contained within the node
+        Node(char value);
+        void extend(char v);
+        Node* children_[4]; ///< one slot for each next character (A, C, G, T)
+        std::string value_; ///< the value contained within the node
         };
 };
 

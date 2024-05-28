@@ -2,91 +2,120 @@
  * \file treeset.cpp
  *
  * \brief implementation for the treeset
+ * 
+ * \note list lastchar_ is an empty list by default
  */
 
 #include "suffarray.hpp"
 
 #include <numeric>
 #include <vector>
+#include <list>
 
-template <typename T>
-Tree<T>::Tree() :
-    size_(0),
-    root_(nullptr)
+Tree::Tree() :
+    root_(&Node('^'))
 {
     // Nothing to do here
 }
 
-template <typename T>
-Tree<T>::~Tree() {
-    destroy(root_); //call recursive helper function
+Tree::Tree(std::string sequence)
+{
+    // Start with an empty tree
+    root_ = &Node('^');
+    lastchar_ = std::list<std::string::iterator>(); // empty list to start
+
+    // Ukkonen's Alg
+    for (auto itr = sequence.begin(); itr!= sequence.end(); ++itr)
+    {
+        insert(*itr);
+    }
 }
 
-template <typename T>
-size_t Tree<T>::size() const {
-    return size_;
+Tree::~Tree() {
+    destroy(root_); // call recursive helper function
+    lastchar_.clear();
 }
 
-template <typename T>
-void Tree<T>::destroy(Node*& root) {
+void Tree::destroy(Node*& root) {
     if (root != nullptr) { // recur until we get to a leaf node
-        destroy(root->left);
-        destroy(root->right);
+        for (size_t i = 0; i != 3; ++i)
+        {
+            // TODO: test
+            destroy(root->children_[i]);
+        }
         delete root;
         root = nullptr;
     }
 }
 
-template <typename T>
-void Tree<T>::insert(T elem) {    
-    Node* elemNode = new Node(elem);
-    // empty tree case
-    if(root == nullptr) {
-        // the root of the tree should always be black
-        root = &elem;
+void Tree::insert(char elem) {
+    // TODO: finish
+    // get index for char, quit if char is not in accepted alphabet
+    size_t i;
+    switch (elem)
+    {
+        case 'a': i = 0;
+        case 'c': i = 1;
+        case 'g': i = 2;
+        case 't': i = 3;
+        default:
+            std::cout << "Character " << elem << " not in alphebet";
+            return;
     }
-    ++size_;
+
+    // Extend existing suffixes by one character
+    for (auto itr = lastchar_.begin(); itr != lastchar_.end(); ++itr)
+    {
+        // Note: *itr will be type std::string::iterator
+        
+    }
+
+    // Add suffix starting at current index
+    if (root_->children_[i] == nullptr) // char hasn't been seen yet
+    {
+        root_->children_[i] = &Node(elem);
+    }
+    lastchar_.push_back(root_->children_[i]->value_.begin());
 }
 
-template <typename T>
-bool Tree<T>::exists(T& elem) {
-    // call more general recursive helper function
-    if (search(root_, elem) == nullptr) {
-        return false;
-    }
-    return true;
-}
-
-template <typename T>
-std::ostream& Tree<T>::print(std::ostream& out) const {
+std::ostream& Tree::print(std::ostream& out) const {
     printNodes(out, root_); // call recursive private helper function
     out << std::endl;
     return out;
 }
 
-template<typename T>
-void Tree<T>::printNodes(std::ostream& out, Node *const root) const {
+void Tree::printNodes(std::ostream& out, Node *const root) const {
+    // TODO: fix
     if (root == nullptr) {
         out << "-";
     }
     else {
         out << "(";
-        printNodes(out, root->left);
-        out << ", " << root->value << ", ";
-        printNodes(out, root->right);
+        for (size_t i = 0; i < 4; ++i)
+        {
+            printNodes(out, root->children_[i]);
+            out << ", " << root->value_ << ", ";
+        }
         out << ")";
     }
+}
+
+std::list<std::string> Tree::makesuffarray() {
+    return std::list<std::string>(); //TODO: write traversal
 }
 
 // **********************
 // Node Functions
 // **********************
 
-template <typename T>
-Tree<T>::Node::Node(T elem):
-    value(elem),
-    left(nullptr),
-    right(nullptr),
+Tree::Node::Node(char key):
+    value_(std::string(1,key)),
+    children_({nullptr, nullptr, nullptr, nullptr})
 {
     // Nothing to do here
+}
+
+void Tree::Node::extend(char v)
+{
+    value_.push_back(v);
 }
