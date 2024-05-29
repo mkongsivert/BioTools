@@ -27,7 +27,7 @@
 */
 class Tree {
     struct Node;
-    struct Tracker;
+    struct Marker;
 
 public:
     /**
@@ -46,6 +46,15 @@ public:
      * \brief this destroys and deallocates a tree
     */
    ~Tree();
+
+    /**
+     * \brief converts character to corresponding index for the children array
+     * 
+     * \param c is a character in our given alphabet
+     * 
+     * \returns the index of the branch corresponding to the character given
+    */
+    size_t cindex(char c);
     
     /**
      * \brief inserts an element into the treeset
@@ -74,7 +83,7 @@ public:
 
 private:
     Node* root_; ///< the root node of the tree
-    std::list<Tracker*> lastchars_; ///< the last char to be inserted into the tree (all locations)
+    std::list<Marker*> lastchars_; ///< the last char to be inserted into the tree (all locations)
 
     /**
      * \brief private recursive helper function for destructor
@@ -88,15 +97,16 @@ private:
 
     struct Node{
         Node(char value);
+        Node(std::string value);
         void extend(char v);
         Node* children_[4]; ///< one slot for each next character (A, C, G, T)
         std::string value_; ///< the value contained within the node
         };
 
-    struct Tracker{
-        Tracker(Node* ntrack, std::string::iterator strack);
+    struct Marker{
+        Marker(Node* ntrack, size_t strack);
         Node* tnode_;
-        std::string::iterator tstring_;
+        size_t tstring_;
         };
 };
 

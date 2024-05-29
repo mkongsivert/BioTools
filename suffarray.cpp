@@ -22,7 +22,7 @@ Tree::Tree(std::string sequence)
 {
     // Start with an empty tree
     root_ = &Node('^');
-    lastchars_ = std::list<Tracker*>(); // empty list to start
+    lastchars_ = std::list<Marker*>(); // empty list to start
 
     // Ukkonen's Alg
     for (auto itr = sequence.begin(); itr!= sequence.end(); ++itr)
@@ -48,25 +48,51 @@ void Tree::destroy(Node*& root) {
     }
 }
 
-void Tree::insert(char elem) {
-    // TODO: finish
-    // get index for char, quit if char is not in accepted alphabet
-    size_t i;
-    switch (elem)
+size_t Tree::cindex(char c) {
+    switch (c)
     {
-        case 'a': i = 0;
-        case 'c': i = 1;
-        case 'g': i = 2;
-        case 't': i = 3;
+        case 'a': return 0;
+        case 'c': return 1;
+        case 'g': return 2;
+        case 't': return 3;
         default:
-            std::cout << "Character " << elem << " not in alphebet";
-            return;
+            std::cout << "Character " << c << " not in alphebet";
+            return 4;
     }
+}
+
+
+void Tree::insert(char elem) {
+    // get index for char, quit if char is not in accepted alphabet
+    size_t i = cindex(elem);
 
     // Extend existing suffixes by one character
     for (auto itr = lastchars_.begin(); itr != lastchars_.end(); ++itr)
     {
-        // Note: *itr will be type std::string::iterator
+        std::string branchval = (*itr)->tnode_->value_;
+        // If the char is at the end of the string
+        if ((*itr)->tstring_+1 == branchval.size())
+        {
+            continue;
+        }
+        else
+        {
+            // If the next character is our desired character, advance the iterator
+            if (branchval[(*itr)->tstring_] == elem)
+            {
+                ++((*itr)->tstring_);
+            }
+            else
+            {
+                size_t j = cindex(branchval[(*itr)->tstring_]); // index to put oldbranch under
+                Node* oldbranch = new Node(branchval.substr(0,(*itr)->tstring_));
+                std::string thisbranch;
+                (*itr)->tnode_->value_ = branchval.substr((*itr)->tstring_);
+                Node* newbranch = new Node(elem);
+                oldbranch->children_[i] = newbranch;
+                // TODO: shuffle branches around
+            }
+        }
         
     }
 
@@ -75,7 +101,7 @@ void Tree::insert(char elem) {
     {
         root_->children_[i] = &Node(elem);
     }
-    Tracker* topchar = new Tracker(root_->children_[i], root_->children_[i]->value_.begin());
+    Marker* topchar = new Marker(root_->children_[i], 0);
     lastchars_.push_back(topchar);
 }
 
@@ -113,10 +139,28 @@ Tree::Node::Node(char key):
     value_(std::string(1,key)),
     children_({nullptr, nullptr, nullptr, nullptr})
 {
-    // Nothing to do here
+    // Constructor from char
+}
+
+Tree::Node::Node(std::string key):
+    value_(key),
+    children_({nullptr, nullptr, nullptr, nullptr})
+{
+    // Constructor from string
 }
 
 void Tree::Node::extend(char v)
 {
     value_.push_back(v);
+}
+
+// **********************
+// Marker Functions
+// **********************
+
+Tree::Marker::Marker(Node* ntrack, size_t strack):
+    tnode_(ntrack),
+    tstring_(strack)
+{
+    // Nothing to do here
 }

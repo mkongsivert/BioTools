@@ -19,3 +19,8 @@ This is structured very similarly to the `rank_support` class, but it relies ver
 This is a class that I added to aid in keeping track of subscripts on letters. It is very simple and is just the combination of a character and an integer. I only implemented a parameterized constructor and the two member variables (the character and its subscript).
 #### FM_text
 First, in the interest of saving time in programming, I made the assumption that the only strings that would be loaded into this class would only use the alphabet `['a', 'c', 'g', 't']`. Unlike the `rank_support` and `select_support` classes, there is a lot of work being done by both the structure itself and its member functions. However, the work being done by the member functions is mostly a lot of elaborate arithmetic and still seems to run in constant time. I timed both the `query(std::string pre)` function and the parameterized constructor with different input text lengths (but keeping the length of the queried text the same). The `query` function consistently took around 15 miliseconds, whereas the parameterized constructor's time increased proportionally with the size of the input text.
+
+## Suffix Array
+Implementation of the suffix trie using Ukkonen's algorithm and a function to convert that trie to a suffix array
+### The Tree Class
+This class was built to store a suffix trie on the alphabet `['a', 'c', 'g', 't']`. (With minor adjustments, it can be rewritten to accommodate any constant-sized alphabet.) This trie can be built from an existing string by using the parameterized constructor or in an online fashion by constructing an empty trie and sequentially calling the `insert` function on each character.
