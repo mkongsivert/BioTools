@@ -22,7 +22,7 @@ Tree::Tree(std::string sequence)
 {
     // Start with an empty tree
     root_ = &Node('^');
-    lastchar_ = std::list<std::string::iterator>(); // empty list to start
+    lastchars_ = std::list<Tracker*>(); // empty list to start
 
     // Ukkonen's Alg
     for (auto itr = sequence.begin(); itr!= sequence.end(); ++itr)
@@ -33,7 +33,7 @@ Tree::Tree(std::string sequence)
 
 Tree::~Tree() {
     destroy(root_); // call recursive helper function
-    lastchar_.clear();
+    lastchars_.clear();
 }
 
 void Tree::destroy(Node*& root) {
@@ -64,7 +64,7 @@ void Tree::insert(char elem) {
     }
 
     // Extend existing suffixes by one character
-    for (auto itr = lastchar_.begin(); itr != lastchar_.end(); ++itr)
+    for (auto itr = lastchars_.begin(); itr != lastchars_.end(); ++itr)
     {
         // Note: *itr will be type std::string::iterator
         
@@ -75,7 +75,8 @@ void Tree::insert(char elem) {
     {
         root_->children_[i] = &Node(elem);
     }
-    lastchar_.push_back(root_->children_[i]->value_.begin());
+    Tracker* topchar = new Tracker(root_->children_[i], root_->children_[i]->value_.begin());
+    lastchars_.push_back(topchar);
 }
 
 std::ostream& Tree::print(std::ostream& out) const {

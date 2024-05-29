@@ -26,8 +26,8 @@
  * \details Why does C++ not have this built in in the first place?
 */
 class Tree {
-
-struct Node;
+    struct Node;
+    struct Tracker;
 
 public:
     /**
@@ -74,7 +74,7 @@ public:
 
 private:
     Node* root_; ///< the root node of the tree
-    std::list<std::string::iterator> lastchar_; ///< the last char to be inserted into the tree (all locations)
+    std::list<Tracker*> lastchars_; ///< the last char to be inserted into the tree (all locations)
 
     /**
      * \brief private recursive helper function for destructor
@@ -91,6 +91,12 @@ private:
         void extend(char v);
         Node* children_[4]; ///< one slot for each next character (A, C, G, T)
         std::string value_; ///< the value contained within the node
+        };
+
+    struct Tracker{
+        Tracker(Node* ntrack, std::string::iterator strack);
+        Node* tnode_;
+        std::string::iterator tstring_;
         };
 };
 
